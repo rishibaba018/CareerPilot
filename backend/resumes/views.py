@@ -53,12 +53,14 @@ class ResumeUploadView(APIView):
 
         profile = request.user.profile
         file.seek(0)
+        # The latest upload becomes the master resume (users re-upload to replace)
+        profile.resumes.update(is_master=False)
         resume = Resume.objects.create(
             profile=profile,
             file=file,
             parsed_text=text,
             ats_score=parsed.get("ats_score"),
-            is_master=not profile.resumes.exists(),
+            is_master=True,
         )
 
         # Fill the master profile from extraction, keeping existing user edits

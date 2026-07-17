@@ -51,10 +51,13 @@ export default function Onboarding() {
   const [workMode, setWorkMode] = useState("any");
   const [expLevel, setExpLevel] = useState("fresher");
 
+  const [hasProfileData, setHasProfileData] = useState(false);
+
   // Pre-fill from an existing profile so revisiting the wizard keeps edits
   useEffect(() => {
     api.get("/profile").then((res) => {
       const p = res.data;
+      setHasProfileData((p.skills ?? []).length > 0 || (p.experience ?? []).length > 0);
       setFullName(p.full_name ?? "");
       setPhone(p.phone ?? "");
       setLocation(p.location ?? "");
@@ -155,10 +158,11 @@ export default function Onboarding() {
       {step === 1 && (
         <Card>
           <CardHeader>
-            <CardTitle>Upload your resume</CardTitle>
+            <CardTitle>{hasProfileData ? "Upload a new resume" : "Upload your resume"}</CardTitle>
             <CardDescription>
               PDF, max 5 MB. The Profile Agent will extract your skills, education,
               experience, and projects — you review everything before it's saved.
+              {hasProfileData && " Your latest upload becomes the master resume."}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -180,9 +184,16 @@ export default function Onboarding() {
             </label>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <div className="flex items-center justify-between">
-              <Button variant="ghost" onClick={() => navigate("/dashboard")}>
-                I'll do this later
-              </Button>
+              <div className="flex gap-1">
+                <Button variant="ghost" onClick={() => navigate("/dashboard")}>
+                  I'll do this later
+                </Button>
+                {hasProfileData && (
+                  <Button variant="outline" onClick={() => setStep(2)}>
+                    Edit profile without re-uploading
+                  </Button>
+                )}
+              </div>
               <Button onClick={handleUpload} disabled={!file || uploading}>
                 {uploading ? (
                   <>

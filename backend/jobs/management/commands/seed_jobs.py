@@ -3,6 +3,8 @@
 Idempotent: jobs are keyed by external_id, re-running updates in place.
 """
 
+from datetime import timedelta
+
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
@@ -200,7 +202,12 @@ class Command(BaseCommand):
         for i, data in enumerate(SEED_JOBS):
             _, was_created = Job.objects.update_or_create(
                 external_id=f"seed-{i + 1}",
-                defaults={**data, "url": "", "posted_at": timezone.now()},
+                defaults={
+                    **data,
+                    "url": "",
+                    # stagger posting dates over the last two weeks so the feed feels alive
+                    "posted_at": timezone.now() - timedelta(days=i % 13, hours=(i * 7) % 24),
+                },
             )
             created += int(was_created)
         self.stdout.write(f"Seeded jobs: {created} new, {len(SEED_JOBS) - created} updated.")

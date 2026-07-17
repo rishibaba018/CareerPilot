@@ -38,19 +38,33 @@ export default function Jobs() {
   const [page, setPage] = useState(1);
   const [q, setQ] = useState("");
   const [mode, setMode] = useState("");
+  const [location, setLocation] = useState("");
+  const [prefsApplied, setPrefsApplied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [discovering, setDiscovering] = useState(false);
 
+  // Auto-filter by the user's preferred location ("Remote" maps to work mode)
+  useEffect(() => {
+    api.get("/profile").then((res) => {
+      const locs: string[] = res.data.preferences?.locations ?? [];
+      const first = locs.find((l) => l.toLowerCase() !== "remote");
+      if (first) setLocation(first.split(",")[0]);
+      else if (locs.length > 0) setMode("remote");
+      setPrefsApplied(true);
+    }).catch(() => setPrefsApplied(true));
+  }, []);
+
   const fetchJobs = useCallback(async () => {
+    if (!prefsApplied) return;
     setLoading(true);
     try {
-      const res = await api.get("/jobs", { params: { q, mode, page } });
+      const res = await api.get("/jobs", { params: { q, mode, location, page } });
       setJobs(res.data.results);
       setCount(res.data.count);
     } finally {
       setLoading(false);
     }
-  }, [q, mode, page]);
+  }, [q, mode, location, page, prefsApplied]);
 
   useEffect(() => {
     fetchJobs();
@@ -98,6 +112,18 @@ export default function Jobs() {
             value={q}
             onChange={(e) => {
               setQ(e.target.value);
+              setPage(1);
+            }}
+          />
+        </div>
+        <div className="relative min-w-40">
+          <MapPin className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            className="pl-8"
+            placeholder="Location"
+            value={location}
+            onChange={(e) => {
+              setLocation(e.target.value);
               setPage(1);
             }}
           />

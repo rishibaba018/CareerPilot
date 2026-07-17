@@ -25,9 +25,16 @@ export default function Landing() {
   const navigate = useNavigate();
 
   return (
-    <div className="mx-auto max-w-6xl px-4">
-      <section className="py-24 text-center">
-        <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
+    <div className="relative mx-auto max-w-6xl overflow-hidden px-4">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-primary/15 blur-3xl"
+      />
+      <section className="relative py-24 text-center">
+        <p className="mx-auto mb-4 w-fit rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+          9 AI agents · 1 profile · 0 blank pages
+        </p>
+        <h1 className="mx-auto max-w-3xl bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-6xl">
           Stop applying. Start landing.
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
@@ -47,9 +54,11 @@ export default function Landing() {
 
       <section className="grid gap-6 pb-24 sm:grid-cols-3">
         {steps.map(({ icon: Icon, title, text }) => (
-          <Card key={title}>
+          <Card key={title} className="transition-all hover:-translate-y-1 hover:shadow-lg">
             <CardHeader>
-              <Icon className="mb-2 h-8 w-8" />
+              <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
+                <Icon className="h-6 w-6 text-primary" />
+              </div>
               <CardTitle>{title}</CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">{text}</CardContent>

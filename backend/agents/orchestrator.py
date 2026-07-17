@@ -13,6 +13,7 @@ from .interview_agent import InterviewAgent
 from .matching_agent import MatchingAgent
 from .mentor_agent import MentorAgent
 from .profile_agent import ProfileAgent
+from .refine_agent import RefineAgent
 from .resume_agent import ResumeAgent
 from .skill_gap_agent import SkillGapAgent
 
@@ -57,3 +58,17 @@ def run_interview_prep(profile: dict, job: dict) -> dict:
 def run_roadmap(profile: dict, preferences: dict) -> dict:
     """Growth flow step 2: 2-year career roadmap."""
     return MentorAgent().run({"profile": profile, "preferences": preferences})
+
+
+def run_refine(doc_type: str, current, style: dict, instruction: str, job_title: str, company: str) -> dict:
+    """Studio chat: apply a user instruction to a generated document."""
+    return RefineAgent().run(
+        {
+            "doc_type": doc_type,
+            "current": current,
+            "style": style,
+            "instruction": instruction,
+            "job_title": job_title,
+            "company": company,
+        }
+    )

@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Download, FileText, Loader2, Mail, RefreshCw } from "lucide-react";
+import { ArrowLeft, Bot, Download, FileText, Loader2, Mail, RefreshCw, Send } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
@@ -54,6 +55,10 @@ export default function ResumeStudio() {
   const [optimizing, setOptimizing] = useState(true);
   const [writingLetter, setWritingLetter] = useState(false);
   const [error, setError] = useState("");
+  const [chatTarget, setChatTarget] = useState<"resume" | "cover_letter">("resume");
+  const [chatInput, setChatInput] = useState("");
+  const [chatBusy, setChatBusy] = useState(false);
+  const [chatLog, setChatLog] = useState<{ user: string; agent: string }[]>([]);
 
   const optimize = useCallback(
     async (refresh = false) => {
@@ -78,6 +83,33 @@ export default function ResumeStudio() {
   useEffect(() => {
     optimize();
   }, [optimize]);
+
+  async function sendChat(e: FormEvent) {
+    e.preventDefault();
+    const message = chatInput.trim();
+    if (!message || chatBusy) return;
+    setChatBusy(true);
+    setChatInput("");
+    setError("");
+    try {
+      const res = await api.post(`/jobs/${id}/resume-chat`, {
+        message,
+        doc_type: chatTarget,
+      });
+      setChatLog((log) => [...log, { user: message, agent: res.data.reply }]);
+      if (chatTarget === "resume" && result && res.data.sections) {
+        setResult({ ...result, sections: res.data.sections });
+      }
+      if (chatTarget === "cover_letter" && letter && res.data.cover_letter) {
+        setLetter({ ...letter, cover_letter: res.data.cover_letter });
+      }
+    } catch {
+      setError("Our AI is busy, please retry in a moment.");
+      setChatInput(message);
+    } finally {
+      setChatBusy(false);
+    }
+  }
 
   async function generateLetter(refresh = false) {
     setError("");
@@ -221,6 +253,64 @@ export default function ResumeStudio() {
           </div>
         </>
       ) : null}
+
+      {result && (
+        <Card className="mt-6 border-primary/40">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Bot className="h-4 w-4 text-primary" /> Refine with AI
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Tell the agent what to change — content, ordering, tone, or style (e.g. "make
+              the summary punchier", "use a green accent color in the PDF").
+            </p>
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                variant={chatTarget === "resume" ? "default" : "outline"}
+                onClick={() => setChatTarget("resume")}
+              >
+                Resume
+              </Button>
+              <Button
+                size="sm"
+                variant={chatTarget === "cover_letter" ? "default" : "outline"}
+                disabled={!letter}
+                onClick={() => setChatTarget("cover_letter")}
+              >
+                Cover letter
+              </Button>
+            </div>
+            {chatLog.length > 0 && (
+              <div className="max-h-56 space-y-2 overflow-y-auto rounded-md bg-muted/50 p-3 text-sm">
+                {chatLog.map((m, i) => (
+                  <div key={i} className="space-y-1">
+                    <p>
+                      <span className="font-semibold">You:</span> {m.user}
+                    </p>
+                    <p className="text-muted-foreground">
+                      <span className="font-semibold text-primary">Agent:</span> {m.agent}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+            <form onSubmit={sendChat} className="flex gap-2">
+              <Input
+                placeholder={`Change the ${chatTarget === "resume" ? "resume" : "cover letter"}…`}
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                disabled={chatBusy}
+              />
+              <Button type="submit" disabled={chatBusy || !chatInput.trim()}>
+                {chatBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="mt-6">
         <CardHeader>

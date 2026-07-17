@@ -10,6 +10,7 @@ from agents.orchestrator import (
     run_cover_letter,
     run_interview_prep,
     run_matching,
+    run_refine,
     run_resume_optimizer,
     run_roadmap,
     run_skill_gap,
@@ -25,6 +26,10 @@ from .pdf import render_cover_letter_pdf, render_resume_pdf
 logger = logging.getLogger(__name__)
 
 AI_BUSY = {"error": {"code": "AI_TIMEOUT", "message": "Our AI is busy, please retry."}}
+
+
+def error_response(code, message, http_status):
+    return Response({"error": {"code": code, "message": message}}, status=http_status)
 
 
 def _get_application(user, job):
@@ -119,6 +124,70 @@ class CoverLetterView(APIView):
         )
 
 
+class ResumeChatView(APIView):
+    """POST /jobs/{id}/resume-chat — conversational edits to generated documents.
+
+    Body: {"message": "...", "doc_type": "resume" | "cover_letter"}
+    """
+
+    def post(self, request, job_id):
+        message = (request.data.get("message") or "").strip()
+        if not message:
+            return error_response("EMPTY_MESSAGE", "Tell the agent what to change.", 400)
+        doc_type_key = request.data.get("doc_type", "resume")
+        model_type = (
+            GeneratedDocument.DocType.COVER_LETTER
+            if doc_type_key == "cover_letter"
+            else GeneratedDocument.DocType.TAILORED_RESUME
+        )
+
+        job = get_object_or_404(Job, pk=job_id)
+        application = _get_application(request.user, job)
+        doc = (
+            GeneratedDocument.objects.filter(application=application, doc_type=model_type)
+            .order_by("-created_at")
+            .first()
+        )
+        if not doc:
+            return error_response(
+                "NO_DOCUMENT", "Generate the document first, then chat to refine it.", 404
+            )
+
+        current = (
+            doc.content.get("cover_letter", "")
+            if doc_type_key == "cover_letter"
+            else doc.content.get("sections", {})
+        )
+        try:
+            result = run_refine(
+                doc_type_key, current, doc.content.get("style") or {},
+                message, job.title, job.company,
+            )
+        except AgentError:
+            logger.exception("Refine Agent failed")
+            return Response(AI_BUSY, status=503)
+
+        if doc_type_key == "cover_letter":
+            doc.content["cover_letter"] = result.get("cover_letter", current)
+            doc.content["tone"] = result.get("tone", doc.content.get("tone", ""))
+        else:
+            doc.content["sections"] = result.get("sections", current)
+        doc.content["style"] = result.get("style") or doc.content.get("style") or {}
+        chat = doc.content.setdefault("chat", [])
+        chat.append({"user": message, "agent": result.get("reply", "Done.")})
+        doc.save()
+
+        return Response(
+            {
+                "reply": result.get("reply", "Done."),
+                "sections": doc.content.get("sections"),
+                "cover_letter": doc.content.get("cover_letter"),
+                "style": doc.content["style"],
+                "document_id": doc.id,
+            }
+        )
+
+
 class InterviewPrepView(APIView):
     def post(self, request, job_id):
         job = get_object_or_404(Job, pk=job_id)
@@ -207,12 +276,16 @@ class DocumentDownloadView(APIView):
         job = doc.application.job
         contact = " | ".join(p for p in [profile.location, profile.phone, request.user.email] if p)
 
+        style = doc.content.get("style")
         if doc.doc_type == GeneratedDocument.DocType.TAILORED_RESUME:
-            pdf = render_resume_pdf(profile.full_name, contact, doc.content.get("sections", {}))
+            pdf = render_resume_pdf(
+                profile.full_name, contact, doc.content.get("sections", {}), style
+            )
             filename = f"resume_{job.company}.pdf"
         elif doc.doc_type == GeneratedDocument.DocType.COVER_LETTER:
             pdf = render_cover_letter_pdf(
-                profile.full_name, job.title, job.company, doc.content.get("cover_letter", "")
+                profile.full_name, job.title, job.company,
+                doc.content.get("cover_letter", ""), style,
             )
             filename = f"cover_letter_{job.company}.pdf"
         else:

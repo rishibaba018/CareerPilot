@@ -11,8 +11,8 @@ export default function Layout() {
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-border">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-2 font-semibold">
-            <Rocket className="h-5 w-5" />
+          <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2 font-semibold">
+            <Rocket className="h-5 w-5 text-primary" />
             CareerPilot
           </Link>
           <nav className="flex items-center gap-2">
@@ -26,6 +26,9 @@ export default function Layout() {
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => navigate("/roadmap")}>
                   Roadmap
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => navigate("/onboarding")}>
+                  Profile
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => navigate("/dashboard")}>
                   Dashboard

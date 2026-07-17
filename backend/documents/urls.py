@@ -5,6 +5,7 @@ from .views import (
     DocumentDownloadView,
     InterviewPrepView,
     OptimizeResumeView,
+    ResumeChatView,
     RoadmapView,
     SkillGapView,
 )
@@ -12,6 +13,7 @@ from .views import (
 urlpatterns = [
     path("jobs/<uuid:job_id>/optimize-resume", OptimizeResumeView.as_view(), name="optimize-resume"),
     path("jobs/<uuid:job_id>/cover-letter", CoverLetterView.as_view(), name="cover-letter"),
+    path("jobs/<uuid:job_id>/resume-chat", ResumeChatView.as_view(), name="resume-chat"),
     path("jobs/<uuid:job_id>/interview-prep", InterviewPrepView.as_view(), name="interview-prep"),
     path("jobs/<uuid:job_id>/skill-gap", SkillGapView.as_view(), name="skill-gap"),
     path("career/roadmap", RoadmapView.as_view(), name="career-roadmap"),
