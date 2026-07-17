@@ -6,9 +6,17 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from agents.base import AgentError
-from agents.orchestrator import run_cover_letter, run_resume_optimizer
+from agents.orchestrator import (
+    run_cover_letter,
+    run_interview_prep,
+    run_matching,
+    run_resume_optimizer,
+    run_roadmap,
+    run_skill_gap,
+)
 from applications.models import Application
 from jobs.models import Job
+from matching.models import MatchResult
 from profiles.serializers import ProfileSerializer
 
 from .models import GeneratedDocument
@@ -109,6 +117,85 @@ class CoverLetterView(APIView):
             },
             status=200 if cached else 201,
         )
+
+
+class InterviewPrepView(APIView):
+    def post(self, request, job_id):
+        job = get_object_or_404(Job, pk=job_id)
+        application = _get_application(request.user, job)
+        refresh = request.query_params.get("refresh") == "1"
+
+        doc = _cached_doc(application, GeneratedDocument.DocType.INTERVIEW_PREP, refresh)
+        cached = doc is not None
+        if not doc:
+            try:
+                result = run_interview_prep(
+                    ProfileSerializer(request.user.profile).data, _job_payload(job)
+                )
+            except AgentError:
+                logger.exception("Interview Agent failed")
+                return Response(AI_BUSY, status=503)
+            doc = GeneratedDocument.objects.create(
+                application=application,
+                doc_type=GeneratedDocument.DocType.INTERVIEW_PREP,
+                content=result,
+            )
+        return Response({**doc.content, "cached": cached}, status=200 if cached else 201)
+
+
+class SkillGapView(APIView):
+    def get(self, request, job_id):
+        job = get_object_or_404(Job, pk=job_id)
+        profile = request.user.profile
+        application = _get_application(request.user, job)
+        refresh = request.query_params.get("refresh") == "1"
+
+        doc = _cached_doc(application, GeneratedDocument.DocType.SKILL_GAP, refresh)
+        if doc:
+            return Response({**doc.content, "cached": True})
+
+        # Growth flow: gap analysis needs a match first — run it if absent
+        match = MatchResult.objects.filter(profile=profile, job=job).first()
+        try:
+            if not match:
+                result = run_matching(ProfileSerializer(profile).data, _job_payload(job))
+                match, _ = MatchResult.objects.update_or_create(
+                    profile=profile,
+                    job=job,
+                    defaults={
+                        "fit_score": int(result.get("fit_score", 0)),
+                        "reasoning": result.get("reasoning", ""),
+                        "matched_skills": result.get("matched_skills", []),
+                        "missing_skills": result.get("missing_skills", []),
+                    },
+                )
+            if not match.missing_skills:
+                return Response({"gaps": [], "cached": False})
+            gap_result = run_skill_gap(
+                match.missing_skills,
+                {"skills": profile.skills, "experience": profile.experience},
+            )
+        except AgentError:
+            logger.exception("Skill Gap Agent failed")
+            return Response(AI_BUSY, status=503)
+
+        doc = GeneratedDocument.objects.create(
+            application=application,
+            doc_type=GeneratedDocument.DocType.SKILL_GAP,
+            content=gap_result,
+        )
+        return Response({**doc.content, "cached": False}, status=201)
+
+
+class RoadmapView(APIView):
+    def get(self, request):
+        profile = request.user.profile
+        try:
+            result = run_roadmap(ProfileSerializer(profile).data, profile.preferences)
+        except AgentError:
+            logger.exception("Mentor Agent failed")
+            return Response(AI_BUSY, status=503)
+        return Response(result)
 
 
 class DocumentDownloadView(APIView):

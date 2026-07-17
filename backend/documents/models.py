@@ -11,6 +11,7 @@ class GeneratedDocument(models.Model):
         COVER_LETTER = "cover_letter"
         INTERVIEW_PREP = "interview_prep"
         ROADMAP = "roadmap"
+        SKILL_GAP = "skill_gap"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     application = models.ForeignKey(Application, on_delete=models.CASCADE, related_name="documents")

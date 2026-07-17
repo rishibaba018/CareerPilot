@@ -1,10 +1,42 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Check, Loader2, Sparkles, X } from "lucide-react";
+import { ArrowLeft, BookOpen, Check, Loader2, MessageSquare, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import type { Job } from "@/pages/Jobs";
+
+interface Gap {
+  skill: string;
+  priority: string;
+  resource: string;
+  weeks: number;
+}
+interface PrepQuestion {
+  question: string;
+  hint: string;
+}
+interface Prep {
+  technical: PrepQuestion[];
+  hr: PrepQuestion[];
+  questions_about_projects: PrepQuestion[];
+}
+
+function QuestionList({ title, items }: { title: string; items: PrepQuestion[] }) {
+  return (
+    <div>
+      <p className="mb-2 text-sm font-semibold">{title}</p>
+      <div className="space-y-2">
+        {items.map((q) => (
+          <details key={q.question} className="rounded-md border border-border p-3 text-sm">
+            <summary className="cursor-pointer">{q.question}</summary>
+            <p className="mt-2 text-muted-foreground">💡 {q.hint}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function scoreRing(score: number) {
   if (score >= 75) return "border-green-600 text-green-600";
@@ -20,6 +52,10 @@ export default function JobDetail() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [gaps, setGaps] = useState<Gap[] | null>(null);
+  const [loadingGaps, setLoadingGaps] = useState(false);
+  const [prep, setPrep] = useState<Prep | null>(null);
+  const [loadingPrep, setLoadingPrep] = useState(false);
 
   const fetchJob = useCallback(async () => {
     const res = await api.get(`/jobs/${id}`);
@@ -39,6 +75,32 @@ export default function JobDetail() {
       setError("Couldn't save this job. Please retry.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function loadGaps() {
+    setLoadingGaps(true);
+    setError("");
+    try {
+      const res = await api.get(`/jobs/${id}/skill-gap`);
+      setGaps(res.data.gaps);
+    } catch {
+      setError("Our AI is busy, please retry in a moment.");
+    } finally {
+      setLoadingGaps(false);
+    }
+  }
+
+  async function loadPrep() {
+    setLoadingPrep(true);
+    setError("");
+    try {
+      const res = await api.post(`/jobs/${id}/interview-prep`);
+      setPrep(res.data);
+    } catch {
+      setError("Our AI is busy, please retry in a moment.");
+    } finally {
+      setLoadingPrep(false);
     }
   }
 
@@ -155,6 +217,87 @@ export default function JobDetail() {
           </div>
         </CardContent>
       </Card>
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <BookOpen className="h-4 w-4" /> Skill gap plan
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {gaps ? (
+              gaps.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No gaps found — you cover this job's requirements. 🎉
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {gaps.map((g) => (
+                    <div key={g.skill} className="rounded-md border border-border p-3 text-sm">
+                      <p className="font-medium">
+                        {g.skill}
+                        <span
+                          className={`ml-2 rounded-full px-1.5 py-0.5 text-[10px] uppercase ${
+                            g.priority === "high"
+                              ? "bg-red-600/10 text-red-600"
+                              : g.priority === "medium"
+                                ? "bg-yellow-600/10 text-yellow-700"
+                                : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {g.priority}
+                        </span>
+                        <span className="ml-2 text-xs font-normal text-muted-foreground">
+                          ~{g.weeks} week{g.weeks === 1 ? "" : "s"}
+                        </span>
+                      </p>
+                      <p className="mt-1 text-muted-foreground">📚 {g.resource}</p>
+                    </div>
+                  ))}
+                </div>
+              )
+            ) : (
+              <Button variant="outline" onClick={loadGaps} disabled={loadingGaps}>
+                {loadingGaps ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Skill Gap Agent analyzing…
+                  </>
+                ) : (
+                  "What am I missing?"
+                )}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <MessageSquare className="h-4 w-4" /> Interview prep
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {prep ? (
+              <div className="space-y-4">
+                <QuestionList title="Technical" items={prep.technical} />
+                <QuestionList title="HR" items={prep.hr} />
+                <QuestionList title="About your projects" items={prep.questions_about_projects} />
+              </div>
+            ) : (
+              <Button variant="outline" onClick={loadPrep} disabled={loadingPrep}>
+                {loadingPrep ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Interview Agent preparing…
+                  </>
+                ) : (
+                  "Generate likely questions"
+                )}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

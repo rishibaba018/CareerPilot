@@ -9,6 +9,7 @@ import Login from "@/pages/Login";
 import Onboarding from "@/pages/Onboarding";
 import Register from "@/pages/Register";
 import ResumeStudio from "@/pages/ResumeStudio";
+import Roadmap from "@/pages/Roadmap";
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/jobs/:id" element={<JobDetail />} />
           <Route path="/jobs/:id/studio" element={<ResumeStudio />} />
+          <Route path="/roadmap" element={<Roadmap />} />
         </Route>
       </Route>
     </Routes>

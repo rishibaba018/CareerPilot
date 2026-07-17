@@ -24,6 +24,9 @@ export default function Layout() {
                 <Button variant="ghost" size="sm" onClick={() => navigate("/jobs")}>
                   Jobs
                 </Button>
+                <Button variant="ghost" size="sm" onClick={() => navigate("/roadmap")}>
+                  Roadmap
+                </Button>
                 <Button variant="outline" size="sm" onClick={() => navigate("/dashboard")}>
                   Dashboard
                 </Button>
