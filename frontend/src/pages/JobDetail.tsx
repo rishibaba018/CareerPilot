@@ -17,6 +17,8 @@ export default function JobDetail() {
   const navigate = useNavigate();
   const [job, setJob] = useState<Job | null>(null);
   const [matching, setMatching] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
   const fetchJob = useCallback(async () => {
@@ -27,6 +29,18 @@ export default function JobDetail() {
   useEffect(() => {
     fetchJob();
   }, [fetchJob]);
+
+  async function saveJob() {
+    setSaving(true);
+    try {
+      await api.post("/applications", { job_id: id });
+      setSaved(true);
+    } catch {
+      setError("Couldn't save this job. Please retry.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   async function analyze() {
     setError("");
@@ -82,6 +96,9 @@ export default function JobDetail() {
           )}
           <Button variant={match ? "default" : "outline"} onClick={() => navigate(`/jobs/${id}/studio`)}>
             Optimize resume &amp; cover letter
+          </Button>
+          <Button variant="outline" onClick={saveJob} disabled={saving || saved}>
+            {saved ? "Saved to pipeline ✓" : saving ? "Saving…" : "Save job"}
           </Button>
         </div>
       </div>
