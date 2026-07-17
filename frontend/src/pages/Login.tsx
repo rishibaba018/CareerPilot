@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { isAxiosError } from "axios";
+import GoogleSignIn from "@/components/GoogleSignIn";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -69,6 +70,9 @@ export default function Login() {
               {submitting ? "Logging in…" : "Log in"}
             </Button>
           </form>
+          <div className="mt-4">
+            <GoogleSignIn onError={setError} />
+          </div>
           <p className="mt-4 text-center text-sm text-muted-foreground">
             No account?{" "}
             <Link to="/register" className="underline">
