@@ -7,6 +7,7 @@ Every agent subclasses this with its own `name`, `system_prompt`, and
 
 import json
 import logging
+import time
 
 from django.conf import settings
 
@@ -35,6 +36,8 @@ class BaseAgent:
             except Exception as exc:  # noqa: BLE001 — retry any Gemini/parse failure once
                 last_error = exc
                 logger.warning("Agent %s attempt %d failed: %s", self.name, attempt + 1, exc)
+                if attempt == 0:
+                    time.sleep(2)  # brief backoff for transient 503/overload errors
         raise AgentError(f"Agent '{self.name}' failed after retry: {last_error}")
 
     def _call_gemini(self, prompt: str) -> str:
