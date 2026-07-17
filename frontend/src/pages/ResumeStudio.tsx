@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Bot, Download, FileText, Loader2, Mail, RefreshCw, Send } from "lucide-react";
+import { ArrowLeft, Bot, Download, Eye, FileText, Loader2, Mail, RefreshCw, Send, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,9 +36,13 @@ interface OriginalProfile {
   education: { degree: string; institution: string; year: string }[];
 }
 
-async function downloadDoc(docId: string, filename: string) {
+async function fetchDocBlobUrl(docId: string) {
   const res = await api.get(`/documents/${docId}/download`, { responseType: "blob" });
-  const url = URL.createObjectURL(res.data);
+  return URL.createObjectURL(res.data);
+}
+
+async function downloadDoc(docId: string, filename: string) {
+  const url = await fetchDocBlobUrl(docId);
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
@@ -59,6 +63,25 @@ export default function ResumeStudio() {
   const [chatInput, setChatInput] = useState("");
   const [chatBusy, setChatBusy] = useState(false);
   const [chatLog, setChatLog] = useState<{ user: string; agent: string }[]>([]);
+  const [preview, setPreview] = useState<{ url: string; title: string; filename: string } | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+  async function openPreview(docId: string, title: string, filename: string) {
+    setPreviewLoading(true);
+    try {
+      const url = await fetchDocBlobUrl(docId);
+      setPreview({ url, title, filename });
+    } catch {
+      setError("Couldn't load the preview. Please retry.");
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
+
+  function closePreview() {
+    if (preview) URL.revokeObjectURL(preview.url);
+    setPreview(null);
+  }
 
   const optimize = useCallback(
     async (refresh = false) => {
@@ -162,6 +185,14 @@ export default function ResumeStudio() {
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => optimize(true)}>
                   <RefreshCw className="h-3.5 w-3.5" /> Regenerate
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={previewLoading}
+                  onClick={() => openPreview(result.document_id, "Tailored resume", "tailored_resume.pdf")}
+                >
+                  <Eye className="h-3.5 w-3.5" /> Preview
                 </Button>
                 <Button size="sm" onClick={() => downloadDoc(result.document_id, "tailored_resume.pdf")}>
                   <Download className="h-3.5 w-3.5" /> Download PDF
@@ -327,6 +358,14 @@ export default function ResumeStudio() {
                 <Button variant="outline" size="sm" onClick={() => generateLetter(true)} disabled={writingLetter}>
                   <RefreshCw className="h-3.5 w-3.5" /> Regenerate
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={previewLoading}
+                  onClick={() => openPreview(letter.document_id, "Cover letter", "cover_letter.pdf")}
+                >
+                  <Eye className="h-3.5 w-3.5" /> Preview
+                </Button>
                 <Button size="sm" onClick={() => downloadDoc(letter.document_id, "cover_letter.pdf")}>
                   <Download className="h-3.5 w-3.5" /> Download PDF
                 </Button>
@@ -345,6 +384,39 @@ export default function ResumeStudio() {
           )}
         </CardContent>
       </Card>
+
+      {preview && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={closePreview}
+        >
+          <div
+            className="flex h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-card shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-border px-4 py-2">
+              <p className="text-sm font-semibold">{preview.title} — print preview</p>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const a = document.createElement("a");
+                    a.href = preview.url;
+                    a.download = preview.filename;
+                    a.click();
+                  }}
+                >
+                  <Download className="h-3.5 w-3.5" /> Download
+                </Button>
+                <Button variant="ghost" size="sm" onClick={closePreview}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <iframe src={preview.url} title={preview.title} className="h-full w-full" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
