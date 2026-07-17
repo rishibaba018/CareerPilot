@@ -5,9 +5,15 @@ export const API_URL =
 
 export const api = axios.create({ baseURL: API_URL });
 
+// login/register/refresh must never carry a (possibly stale) Authorization
+// header — SimpleJWT rejects the whole request before the view runs.
+const PUBLIC_AUTH = /\/auth\/(login|register|refresh)$/;
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("access_token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (token && !PUBLIC_AUTH.test(config.url ?? "")) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 

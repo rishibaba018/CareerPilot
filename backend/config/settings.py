@@ -130,4 +130,8 @@ JSEARCH_API_KEY = os.getenv("JSEARCH_API_KEY", "")
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# Django 5.1+ removed STATICFILES_STORAGE; STORAGES is the supported form
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
