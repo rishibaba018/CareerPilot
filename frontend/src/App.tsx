@@ -2,6 +2,8 @@ import { Route, Routes } from "react-router-dom";
 import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Dashboard from "@/pages/Dashboard";
+import JobDetail from "@/pages/JobDetail";
+import Jobs from "@/pages/Jobs";
 import Landing from "@/pages/Landing";
 import Login from "@/pages/Login";
 import Onboarding from "@/pages/Onboarding";
@@ -17,6 +19,8 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/jobs" element={<Jobs />} />
+          <Route path="/jobs/:id" element={<JobDetail />} />
         </Route>
       </Route>
     </Routes>

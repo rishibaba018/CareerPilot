@@ -15,6 +15,8 @@ urlpatterns = [
     path("api/v1/auth/", include("accounts.urls")),
     path("api/v1/", include("profiles.urls")),
     path("api/v1/", include("resumes.urls")),
+    path("api/v1/", include("jobs.urls")),
+    path("api/v1/", include("matching.urls")),
 ]
 
 if settings.DEBUG:

@@ -21,6 +21,9 @@ export default function Layout() {
                 <span className="mr-2 hidden text-sm text-muted-foreground sm:inline">
                   {user.full_name || user.email}
                 </span>
+                <Button variant="ghost" size="sm" onClick={() => navigate("/jobs")}>
+                  Jobs
+                </Button>
                 <Button variant="outline" size="sm" onClick={() => navigate("/dashboard")}>
                   Dashboard
                 </Button>
