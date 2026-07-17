@@ -66,19 +66,24 @@ export default function JobDetail() {
             {job.salary_range && ` · ${job.salary_range}`}
           </p>
         </div>
-        {!match && (
-          <Button onClick={analyze} disabled={matching}>
-            {matching ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Matching Agent thinking…
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-4 w-4" /> Analyze my fit
-              </>
-            )}
+        <div className="flex gap-2">
+          {!match && (
+            <Button onClick={analyze} disabled={matching}>
+              {matching ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Matching Agent thinking…
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" /> Analyze my fit
+                </>
+              )}
+            </Button>
+          )}
+          <Button variant={match ? "default" : "outline"} onClick={() => navigate(`/jobs/${id}/studio`)}>
+            Optimize resume &amp; cover letter
           </Button>
-        )}
+        </div>
       </div>
       {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
 
