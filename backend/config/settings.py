@@ -114,6 +114,13 @@ CORS_ALLOWED_ORIGINS = [
     if o
 ]
 
+# Vercel preview deployments get a fresh careerpilot-*.vercel.app hostname per
+# deploy, so exact-origin matching breaks on every redeploy — allow the project's
+# whole namespace by regex instead.
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://careerpilot-[a-z0-9-]+\.vercel\.app$",
+]
+
 
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"

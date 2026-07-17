@@ -1,7 +1,10 @@
 import axios from "axios";
 
-export const API_URL =
-  import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000/api/v1";
+// VITE_API_URL may be set with or without the /api/v1 suffix (the deployed
+// Vercel env had it bare, producing /auth/login instead of /api/v1/auth/login)
+// — normalize so both work.
+const raw = (import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000").replace(/\/+$/, "");
+export const API_URL = raw.endsWith("/api/v1") ? raw : `${raw}/api/v1`;
 
 export const api = axios.create({ baseURL: API_URL });
 
