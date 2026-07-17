@@ -1,8 +1,11 @@
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
@@ -16,10 +19,13 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Resume &amp; Profile</CardTitle>
-            <CardDescription>Sprint 2</CardDescription>
+            <CardDescription>Ready now</CardDescription>
           </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            Upload your resume and let the Profile Agent build your master profile.
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <p>Upload your resume and let the Profile Agent build your master profile.</p>
+            <Button size="sm" onClick={() => navigate("/onboarding")}>
+              Set up profile
+            </Button>
           </CardContent>
         </Card>
         <Card>

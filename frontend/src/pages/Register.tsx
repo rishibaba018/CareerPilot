@@ -22,7 +22,7 @@ export default function Register() {
     setSubmitting(true);
     try {
       await register(email, password, fullName);
-      navigate("/dashboard");
+      navigate("/onboarding");
     } catch (err) {
       if (isAxiosError(err) && err.response?.data) {
         const data = err.response.data as Record<string, string[]>;
