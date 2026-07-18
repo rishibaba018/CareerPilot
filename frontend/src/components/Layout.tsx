@@ -9,11 +9,13 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b border-border">
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
           <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2 font-semibold">
-            <Rocket className="h-5 w-5 text-primary" />
-            CareerPilot
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-purple-500 shadow-sm shadow-primary/30">
+              <Rocket className="h-4.5 w-4.5 text-white" />
+            </span>
+            <span className="heading-gradient text-lg font-bold">CareerPilot</span>
           </Link>
           <nav className="flex items-center gap-2">
             {user ? (

@@ -8,16 +8,22 @@ const steps = [
     icon: FileText,
     title: "1. Upload once",
     text: "Upload your resume one time. AI builds your master profile automatically.",
+    tone: "border-sky-200 bg-sky-50/60 [&_svg]:text-sky-600 dark:border-sky-900 dark:bg-sky-950/40",
+    iconBg: "bg-sky-500/15",
   },
   {
     icon: Target,
     title: "2. Match instantly",
     text: "AI finds real jobs and scores your fit — with reasons, not just a number.",
+    tone: "border-violet-200 bg-violet-50/60 [&_svg]:text-violet-600 dark:border-violet-900 dark:bg-violet-950/40",
+    iconBg: "bg-violet-500/15",
   },
   {
     icon: Bot,
     title: "3. Apply smarter",
     text: "Tailored resume, cover letter, and interview prep generated per job.",
+    tone: "border-emerald-200 bg-emerald-50/60 [&_svg]:text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/40",
+    iconBg: "bg-emerald-500/15",
   },
 ];
 
@@ -53,11 +59,11 @@ export default function Landing() {
       </section>
 
       <section className="grid gap-6 pb-24 sm:grid-cols-3">
-        {steps.map(({ icon: Icon, title, text }) => (
-          <Card key={title} className="transition-all hover:-translate-y-1 hover:shadow-lg">
+        {steps.map(({ icon: Icon, title, text, tone, iconBg }) => (
+          <Card key={title} className={`transition-all hover:-translate-y-1 hover:shadow-lg ${tone}`}>
             <CardHeader>
-              <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
-                <Icon className="h-6 w-6 text-primary" />
+              <div className={`mb-2 flex h-11 w-11 items-center justify-center rounded-xl ${iconBg}`}>
+                <Icon className="h-6 w-6" />
               </div>
               <CardTitle>{title}</CardTitle>
             </CardHeader>

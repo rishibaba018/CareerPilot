@@ -28,6 +28,12 @@ const COLUMN_LABELS: Record<string, string> = {
   interview: "Interview",
   offer: "Offer",
 };
+const COLUMN_TONES: Record<string, { col: string; badge: string }> = {
+  saved: { col: "bg-sky-500/[0.07]", badge: "bg-sky-500/15 text-sky-700 dark:text-sky-300" },
+  applied: { col: "bg-violet-500/[0.07]", badge: "bg-violet-500/15 text-violet-700 dark:text-violet-300" },
+  interview: { col: "bg-amber-500/[0.08]", badge: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
+  offer: { col: "bg-emerald-500/[0.08]", badge: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" },
+};
 const FLOW = ["saved", "applied", "interview", "offer"];
 
 export default function Dashboard() {
@@ -87,7 +93,7 @@ export default function Dashboard() {
     <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">
+          <h1 className="heading-gradient w-fit text-2xl font-bold">
             {user?.full_name ? `${user.full_name}'s` : "Your"} pipeline
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -157,10 +163,10 @@ export default function Dashboard() {
         <>
           <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {COLUMNS.map((col) => (
-              <div key={col} className="rounded-lg bg-muted/50 p-3">
+              <div key={col} className={`rounded-xl p-3 ${COLUMN_TONES[col].col}`}>
                 <p className="mb-3 flex items-center justify-between px-1 text-sm font-semibold">
                   {COLUMN_LABELS[col]}
-                  <span className="rounded-full bg-muted px-2 text-xs text-muted-foreground">
+                  <span className={`rounded-full px-2 text-xs font-bold ${COLUMN_TONES[col].badge}`}>
                     {board[col].length}
                   </span>
                 </p>

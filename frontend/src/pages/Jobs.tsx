@@ -87,7 +87,7 @@ export default function Jobs() {
     <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Job Feed</h1>
+          <h1 className="heading-gradient w-fit text-2xl font-bold">Job Feed</h1>
           <p className="text-sm text-muted-foreground">{count} jobs in your pool</p>
         </div>
         <Button onClick={discover} disabled={discovering}>
@@ -157,7 +157,7 @@ export default function Jobs() {
           {jobs.map((job) => (
             <Card
               key={job.id}
-              className="cursor-pointer transition-shadow hover:shadow-md"
+              className="cursor-pointer transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10"
               onClick={() => navigate(`/jobs/${job.id}`)}
             >
               <CardHeader className="pb-3">
@@ -183,7 +183,10 @@ export default function Jobs() {
                 {job.salary_range && <p className="text-muted-foreground">{job.salary_range}</p>}
                 <div className="flex flex-wrap gap-1 pt-1">
                   {job.skills_required.slice(0, 4).map((s) => (
-                    <span key={s} className="rounded-full border border-border px-2 py-0.5 text-xs">
+                    <span
+                      key={s}
+                      className="rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-xs text-primary"
+                    >
                       {s}
                     </span>
                   ))}

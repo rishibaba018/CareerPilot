@@ -2,8 +2,8 @@
 
 /* ShadCN-style design tokens (neutral base, dark-mode friendly) */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: oklch(0.988 0.006 280);
+  --foreground: oklch(0.18 0.02 280);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --primary: oklch(0.51 0.22 277);
@@ -61,4 +61,20 @@
 
 body {
   @apply bg-background text-foreground antialiased;
+  background-image:
+    radial-gradient(700px circle at 92% -8%, oklch(0.93 0.06 320 / 55%), transparent 65%),
+    radial-gradient(800px circle at -8% 15%, oklch(0.93 0.05 240 / 50%), transparent 65%),
+    radial-gradient(600px circle at 50% 110%, oklch(0.95 0.05 180 / 40%), transparent 60%);
+  background-attachment: fixed;
+}
+
+.dark body {
+  background-image:
+    radial-gradient(700px circle at 92% -8%, oklch(0.3 0.08 320 / 35%), transparent 65%),
+    radial-gradient(800px circle at -8% 15%, oklch(0.3 0.07 240 / 35%), transparent 65%);
+}
+
+/* Gradient page headings */
+.heading-gradient {
+  @apply bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent;
 }

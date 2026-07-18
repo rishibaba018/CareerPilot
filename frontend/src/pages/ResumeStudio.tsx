@@ -153,7 +153,7 @@ export default function ResumeStudio() {
       <Button variant="ghost" size="sm" onClick={() => navigate(`/jobs/${id}`)}>
         <ArrowLeft className="h-4 w-4" /> Back to job
       </Button>
-      <h1 className="mt-2 text-2xl font-bold">Resume Studio</h1>
+      <h1 className="heading-gradient mt-2 w-fit text-2xl font-bold">Resume Studio</h1>
       {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
 
       {optimizing ? (
