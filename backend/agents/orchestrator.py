@@ -16,6 +16,7 @@ from .profile_agent import ProfileAgent
 from .refine_agent import RefineAgent
 from .resume_agent import ResumeAgent
 from .skill_gap_agent import SkillGapAgent
+from .tracking_agent import TrackingAgent
 
 
 def run_onboarding(resume_text: str) -> dict:
@@ -58,6 +59,11 @@ def run_interview_prep(profile: dict, job: dict) -> dict:
 def run_roadmap(profile: dict, preferences: dict) -> dict:
     """Growth flow step 2: 2-year career roadmap."""
     return MentorAgent().run({"profile": profile, "preferences": preferences})
+
+
+def run_tracking(applications: list, preferences: dict) -> dict:
+    """Insights flow: coach the user on their application pipeline."""
+    return TrackingAgent().run({"applications": applications, "preferences": preferences})
 
 
 def run_refine(doc_type: str, current, style: dict, instruction: str, job_title: str, company: str) -> dict:

@@ -1,14 +1,20 @@
+import logging
+
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from agents.base import AgentError
+from agents.orchestrator import run_tracking
 from jobs.models import Job
 from matching.models import MatchResult
 
 from .models import Application
 from .serializers import ApplicationSerializer
+
+logger = logging.getLogger(__name__)
 
 
 def _queryset(user):
@@ -49,6 +55,45 @@ class ApplicationListCreateView(APIView):
             app.applied_at = timezone.now()
         app.save()
         return Response(ApplicationSerializer(app).data, status=201 if created else 200)
+
+
+class PipelineInsightsView(APIView):
+    """GET /applications/insights — Tracking Agent coaching over the pipeline."""
+
+    def get(self, request):
+        apps = list(_queryset(request.user))
+        if not apps:
+            return Response(
+                {
+                    "insights": ["Your pipeline is empty — nothing to analyze yet."],
+                    "suggestions": [
+                        "Browse the job feed and save 3-5 roles that fit you.",
+                        "Run 'Analyze my fit' on each to see where you stand.",
+                    ],
+                }
+            )
+
+        now = timezone.now()
+        payload = []
+        for app in apps:
+            match = next(iter(app.job.match_results.all()), None)
+            payload.append(
+                {
+                    "job": f"{app.job.title} at {app.job.company}",
+                    "status": app.status,
+                    "days_in_status": (now - app.updated_at).days,
+                    "fit_score": match.fit_score if match else None,
+                }
+            )
+        try:
+            result = run_tracking(payload, request.user.profile.preferences)
+        except AgentError:
+            logger.exception("Tracking Agent failed")
+            return Response(
+                {"error": {"code": "AI_TIMEOUT", "message": "Our AI is busy, please retry."}},
+                status=503,
+            )
+        return Response(result)
 
 
 class ApplicationUpdateView(APIView):

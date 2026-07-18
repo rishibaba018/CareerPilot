@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
+import AgentVisualizer from "@/components/AgentVisualizer";
 
 interface EducationItem {
   degree: string;
@@ -166,6 +167,15 @@ export default function Onboarding() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {uploading && (
+              <AgentVisualizer
+                steps={[
+                  "Reading your PDF",
+                  "Profile Agent — extracting skills, education, experience, projects",
+                  "ATS check — scoring robot-friendliness",
+                ]}
+              />
+            )}
             <label
               htmlFor="resume-file"
               className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border p-10 text-center hover:bg-muted"

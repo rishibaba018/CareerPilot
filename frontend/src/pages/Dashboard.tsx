@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bot, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 
@@ -35,6 +35,18 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [board, setBoard] = useState<Board | null>(null);
   const [movingId, setMovingId] = useState<string | null>(null);
+  const [insights, setInsights] = useState<{ insights: string[]; suggestions: string[] } | null>(null);
+  const [coaching, setCoaching] = useState(false);
+
+  async function loadInsights() {
+    setCoaching(true);
+    try {
+      const res = await api.get("/applications/insights");
+      setInsights(res.data);
+    } finally {
+      setCoaching(false);
+    }
+  }
 
   const fetchBoard = useCallback(async () => {
     const res = await api.get("/applications");
@@ -86,6 +98,46 @@ export default function Dashboard() {
           <Sparkles className="h-4 w-4" /> Find more jobs
         </Button>
       </div>
+
+      <Card className="mt-6 border-primary/30">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Bot className="h-4 w-4 text-primary" /> Tracking Agent insights
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {insights ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">What I see</p>
+                <ul className="list-disc space-y-1 pl-4 text-sm">
+                  {insights.insights.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Do this week</p>
+                <ul className="list-disc space-y-1 pl-4 text-sm">
+                  {insights.suggestions.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ) : (
+            <Button variant="outline" size="sm" onClick={loadInsights} disabled={coaching}>
+              {coaching ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Tracking Agent reviewing your pipeline…
+                </>
+              ) : (
+                "Coach me on my pipeline"
+              )}
+            </Button>
+          )}
+        </CardContent>
+      </Card>
 
       {!board ? (
         <div className="flex h-48 items-center justify-center text-muted-foreground">

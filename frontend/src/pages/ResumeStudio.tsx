@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Bot, Download, Eye, FileText, Loader2, Mail, RefreshCw, Send, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import AgentVisualizer from "@/components/AgentVisualizer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
@@ -156,9 +157,15 @@ export default function ResumeStudio() {
       {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
 
       {optimizing ? (
-        <div className="flex h-64 flex-col items-center justify-center gap-3 text-muted-foreground">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <p>Resume Agent is tailoring your resume for this job…</p>
+        <div className="flex h-72 items-center justify-center">
+          <AgentVisualizer
+            steps={[
+              "Profile Agent — loading your master profile",
+              "Matching Agent — re-reading the job description",
+              "Resume Optimizer — rewriting sections truthfully",
+              "ATS check — scoring the tailored version",
+            ]}
+          />
         </div>
       ) : result ? (
         <>
